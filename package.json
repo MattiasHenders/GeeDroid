@@ -1,0 +1,17 @@
+{
+  "name": "gee-droid",
+  "version": "1.0.0",
+  "description": "A Bot for the Client Server Discord Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mattias Henders",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.13.6"
+  }
+}
