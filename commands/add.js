@@ -106,7 +106,7 @@ function sendDueMessage(client, channelToSend, classKey, dueDate, dueString) {
 
     //Change due date into 
     dueDate = new Date(dueDate);
-    dueDate.setHours(dueDate.getHours() - 7); //UTC server convert
+    //dueDate.setHours(dueDate.getHours() + 7); //UTC server convert
 
     const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const monthNames = ["January", "February", "March", "April", "May", "June",
