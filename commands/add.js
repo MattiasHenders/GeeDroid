@@ -1,6 +1,4 @@
 require("dotenv").config();
-const profileModel = require('../models/profileSchema');
-const deckModel = require('../models/deckSchema');
 
 //CLASS KEYS
 const ERROR_CLASS = -1;
@@ -17,18 +15,20 @@ module.exports = {
     
     async execute(client, message, args, Discord){ 
 
+        console.log("Starting add command");
+
         let channelToSend = getChannelToSend();
 
         //Args Checks
-        if ((args.length != 3)) {
-            message.author.send("You have the wrong amount of arguments, it should be -add class dueDate \"whatsDue\"");
+        if ((args.length < 3)) {
+            message.author.send("You have the wrong amount of arguments, it should be -add class dueDate WhatsDue");
             return;
         }
 
         //Check that the date is formatted correct
         var dateStr = args[1];
 
-        var date = new Date().parse(dateStr);
+        var date = Date.parse(dateStr.replace(/-/g, '\/'));
 
         if (date == NaN) {
             message.author.send("You have a weird date, it should be in format YYYY-MM-DD");
@@ -43,12 +43,17 @@ module.exports = {
             return;
         }
 
-        var dueString = args[2];
+        //Rebuild what is due message
+        var dueString = "";
+
+        for (let index = 2; index < args.length; index++) {
+            dueString += args[index] + " ";
+        }
 
         //With date object and class key print what is due in a card
-        sendDueMessage(client, channelToSend, dueString);
+        sendDueMessage(client, channelToSend, classID, date, dueString);
 
-        console.log("Finished fight command...");
+        console.log("Finished add command...");
     }
 }
 
@@ -90,23 +95,33 @@ function parseClassID(classString) {
 }
 
 
-function sendFightMessage(client, channelToSend, classKey, dueDate, dueString) {
+function sendDueMessage(client, channelToSend, classKey, dueDate, dueString) {
 
     //Find the channel to send to
     const channel = client.channels.cache.find(channel => channel.name === channelToSend);
 
     var classString = getClassString(classKey);
-    //var imgUrl = getClassImgURL(classKey);
+    var imgUrl = getClassImgURL(classKey);
     var classColour = getClassColour(classKey);
+
+    //Change due date into 
+    dueDate = new Date(dueDate);
+    date.setHours(date.getHours() - 7); //UTC server convert
+
+    const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+
+    var dateString = weekDays[dueDate.getDay()] + " " + monthNames[dueDate.getMonth()] + " " + dueDate.getDate();
 
     //Set up the messages
     const fightEmbed = {
         "type": "rich",
-        "title": `${classString}`,
-        "description": `\n${dueString}\nDue at : ${dueDate}`,
+        "title": `${classString} - ${dueString.split(" ")[0]}`,
+        "description": `${dueString}\n\nDue at: ${dateString}`,
         "color": classColour,
         "thumbnail": {
-            "url": `https://github.com/MattiasHenders/MotherBrain/blob/main/media/topdecklethal%20logo.png?raw=true`,
+            "url": `${imgUrl}`,
             "height": 0,
             "width": 0
         },
@@ -156,27 +171,27 @@ function getClassImgURL(classKey) {
     switch (classKey) {
 
         case CLIENT_SERVER:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/client.png?raw=true";
             break;
 
         case ALGORITHMS:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/algo.png?raw=true";
             break;
 
         case STATISTICS:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/math.png?raw=true";
             break;
 
         case OBJECT_ORIENTED_PROGRAMMING:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/oop.png?raw=true";
             break;
 
         case DATA_COMM:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/datacomm.png?raw=true";
             break;
 
         case ANDROID:
-            return "";
+            return "https://github.com/MattiasHenders/GeeDroid/blob/main/media/android.png?raw=true";
             break;
     
         default:
@@ -190,27 +205,27 @@ function getClassString(classKey) {
     switch (classKey) {
 
         case CLIENT_SERVER:
-            return "🖥 3940 Client Server";
+            return "🖥   3940 Client Server";
             break;
 
         case ALGORITHMS:
-            return "🤖 3760 Algorithms";
+            return "🤖   3760 Algorithms";
             break;
 
         case STATISTICS:
-            return "📈 3042 Statistics";
+            return "📈   3042 Statistics";
             break;
 
         case OBJECT_ORIENTED_PROGRAMMING:
-            return "☕ 3522 Object Oriented";
+            return "☕   3522 Object Oriented";
             break;
 
         case DATA_COMM:
-            return "📶 3721 Data Comm";
+            return "📶   3721 Data Comm";
             break;
 
         case ANDROID:
-            return "📱 3717 Mobile Dev";
+            return "📱   3717 Mobile Dev";
             break;
     
         default:

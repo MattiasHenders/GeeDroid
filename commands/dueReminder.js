@@ -1,5 +1,5 @@
 require("dotenv").config();
-const profileModel = require('../models/profileSchema');
+var cron = require('node-cron');
 
 module.exports = {
     name: 'dueReminder',
@@ -7,51 +7,41 @@ module.exports = {
     
     async execute(client, message, args, Discord){ 
 
-        console.log("Starting dueReminder command");
-        
-        let channelToSend = getChannelToSend();
-        const DAYS_CHECK = parseInt(process.env.MAX_DAYS_CHECK);
+        //Check each day if the next day is a garbage day
+        //0th second, 45th min, 17th hour (5pm), 23rd day of EACH day
+        cron.schedule('59 6 * * *', () => {
 
-        //Check today if any past due dates are old
-        
+            console.log("Starting dueReminder command");
 
-        //Delete the old message
+            let channelToDelete = getChannelToSend();
+            const channel = client.channels.cache.find(channel => channel.name === channelToDelete);
 
-        console.log("Finished due Reminder command...");
+            const date = new Date();
+            date.setHours(date.getHours() - 7); //UTC server convert
+
+            const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+            var dateString = weekDays[date.getDay()] + " " + monthNames[date.getMonth()] + " " + date.getDate();
+
+            console.log("Deleting messages from: " + dateString);
+
+
+            async function clear() {
+                const fetched = await channel.messages.fetch({limit: 20});
+                
+                let filtering = fetched.filter((m) => m.embeds.length > 0);
+
+                let toDelete = filtering.filter((m) => m.embeds[0].description.includes(dateString));
+
+                channel.bulkDelete(toDelete);
+            }
+            clear();
+
+            console.log("Finished due Reminder command...");
+        })
     }
-}
-
-function printTopReminders(client, channelToSend, playerArray) {
-
-    console.log("Reminder is printing new changes");
-    
-    var message = "";
-
-    //Get each leader
-    for (let i = 0; i < playerArray.length; i++) {
-
-        //Adds it to the message
-        console.log(playerArray[i]);
-
-        message += (i + 1) + ") " + playerArray[i].userTag.split("#")[0] + "\n> SCORE: " + playerArray[i].dojoPoints + "\n\n";
-    }
-    
-    //Set up the messages
-    const messageEmbed = {
-        "type": "rich",
-        "title": `⏰ Upcoming Due Dates ⏰`,
-        "description": `${message}`,
-        "color": 0x00d9ff,
-        "thumbnail": {
-            "url": `https://github.com/MattiasHenders/MotherBrain/blob/main/media/topdecklethal%20logo.png?raw=true`,
-            "height": 0,
-            "width": 0
-        },
-    };
-
-    //Send message to the specific channel
-    const channel = client.channels.cache.find(channel => channel.name == channelToSend);
-    channel.send({embed: messageEmbed});
 }
 
 //Gets the channel to send based on .env file

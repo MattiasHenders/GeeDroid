@@ -1,5 +1,4 @@
 require("dotenv").config();
-const profileModel = require('../models/profileSchema');
 
 module.exports = {
     name: 'clear',
